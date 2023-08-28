@@ -12,7 +12,7 @@ from flask_restx import Api, Resource, fields
 
 import jwt
 
-from .models import db, Users, JWTTokenBlocklist
+from .models import db, Users, JWTTokenBlocklist, DBManager
 from .config import BaseConfig
 import requests
 
@@ -240,3 +240,11 @@ class GitHubLogin(Resource):
                     "username": user_json['username'],
                     "token": token,
                 }}, 200
+
+    @rest_api.route("/api/db")
+    class Database(Resource):
+        db_manager = DBManager()
+
+        def post(self):
+            return self.db_manager.get_all_tables(), 200
+

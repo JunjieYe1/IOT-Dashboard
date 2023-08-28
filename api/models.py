@@ -9,8 +9,12 @@ import json
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from .mysql_db import Database
+from .config import BaseConfig
 
 db = SQLAlchemy()
+
+mysql = Database(BaseConfig.SQLALCHEMY_DATABASE_URI)
 
 
 class Users(db.Model):
@@ -83,3 +87,16 @@ class JWTTokenBlocklist(db.Model):
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+
+class DBManager:
+
+    def __init__(self):
+        pass
+
+    def get_all_tables(self):
+        mysql.connect()
+        out = mysql.get_all_tables()
+        mysql.close()
+        return out
+
