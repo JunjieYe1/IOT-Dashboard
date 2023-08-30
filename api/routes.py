@@ -18,7 +18,6 @@ import requests
 
 rest_api = Api(version="1.0", title="Users API")
 
-
 """
     Flask-Restx models for api request and response data
 """
@@ -33,17 +32,21 @@ login_model = rest_api.model('LoginModel', {"email": fields.String(required=True
                                             })
 
 user_edit_model = rest_api.model('UserEditModel', {"userID": fields.String(required=True, min_length=1, max_length=32),
-                                                   "username": fields.String(required=True, min_length=2, max_length=32),
+                                                   "username": fields.String(required=True, min_length=2,
+                                                                             max_length=32),
                                                    "email": fields.String(required=True, min_length=4, max_length=64)
                                                    })
 
+waterId = rest_api.model('waterId', {"id": fields.Integer(required=True, min_length=1, max_length=32),
+                                     "startTime": fields.DateTime(required=False),
+                                     "endTime": fields.DateTime(required=False)})
 
 """
    Helper function for JWT token required
 """
 
-def token_required(f):
 
+def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
 
@@ -92,7 +95,6 @@ class Register(Resource):
 
     @rest_api.expect(signup_model, validate=True)
     def post(self):
-
         req_data = request.get_json()
 
         _username = req_data.get("username")
@@ -183,7 +185,6 @@ class LogoutUser(Resource):
 
     @token_required
     def post(self, current_user):
-
         _jwt_token = request.headers["authorization"]
 
         jwt_block = JWTTokenBlocklist(jwt_token=_jwt_token, created_at=datetime.now(timezone.utc))
@@ -203,7 +204,7 @@ class GitHubLogin(Resource):
         client_secret = BaseConfig.GITHUB_CLIENT_SECRET
         root_url = 'https://github.com/login/oauth/access_token'
 
-        params = { 'client_id': client_id, 'client_secret': client_secret, 'code': code }
+        params = {'client_id': client_id, 'client_secret': client_secret, 'code': code}
 
         data = requests.post(root_url, params=params, headers={
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -215,7 +216,7 @@ class GitHubLogin(Resource):
         user_data = requests.get('https://api.github.com/user', headers={
             "Authorization": "Bearer " + access_token
         }).json()
-        
+
         user_exists = Users.get_by_username(user_data['login'])
         if user_exists:
             user = user_exists
@@ -226,10 +227,11 @@ class GitHubLogin(Resource):
             except:
                 user = Users(username=user_data['login'])
                 user.save()
-        
+
         user_json = user.toJSON()
 
-        token = jwt.encode({"username": user_json['username'], 'exp': datetime.utcnow() + timedelta(minutes=30)}, BaseConfig.SECRET_KEY)
+        token = jwt.encode({"username": user_json['username'], 'exp': datetime.utcnow() + timedelta(minutes=30)},
+                           BaseConfig.SECRET_KEY)
         user.set_jwt_auth_active(True)
         user.save()
 
@@ -241,10 +243,16 @@ class GitHubLogin(Resource):
                     "token": token,
                 }}, 200
 
-    @rest_api.route("/api/db")
+    @rest_api.route("/api/db/water/info")
     class Database(Resource):
         db_manager = DBManager()
 
-        def post(self):
-            return self.db_manager.get_all_tables(), 200
+        def get(self):
+            return self.db_manager.get_all_cpnt_water(), 200
 
+        @rest_api.expect(waterId, validate=True)
+        def post(self):
+            req_data = request.get_json()
+            return self.db_manager.get_water_record_by_id(id=req_data.get("id"),
+                                                          start_time=req_data.get("startTime"),
+                                                          end_time=req_data.get("endTime")), 200

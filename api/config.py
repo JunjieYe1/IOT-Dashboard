@@ -32,6 +32,14 @@ class BaseConfig():
     DB_PORT     = os.getenv('DB_PORT'     , None)
     DB_NAME     = os.getenv('DB_NAME'     , None)
 
+    # 数据库表格名称
+    DB_WATER_TABLE = os.getenv('DB_WATER_TABLE', None)
+    DB_CITY_TABLE = os.getenv('DB_CITY_TABLE', None)
+    DB_DUST_TABLE = os.getenv('DB_DUST_TABLE', None)
+    DB_LAMPBLACK_TABLE = os.getenv('DB_LAMPBLACK_TABLE', None)
+    DB_WATER_RECORD = os.getenv('DB_WATER_RECORD', None)
+
+
     USE_SQLITE  = True 
 
     # try to set up a Relational DBMS

@@ -100,3 +100,19 @@ class DBManager:
         mysql.close()
         return out
 
+    def get_all_cpnt_water(self):
+        mysql.connect()
+        out = mysql.get_table_data(BaseConfig.DB_WATER_TABLE)
+        mysql.close()
+        return out
+
+    def get_water_record_by_id(self, id, start_time, end_time):
+        mysql.connect()
+        out = mysql.get_table_data(BaseConfig.DB_WATER_RECORD, where=f"waterId={id} AND reportTime BETWEEN '{start_time}' AND '{end_time}'")
+        mysql.close()
+        return out
+
+
+
+
+
